@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 import type { NextPage } from "next";
 import styles from "../styles/Home.module.css";
@@ -9,16 +10,34 @@ import TaskList from "../components/TaskList";
 
 import { TaskProps } from "../src/models/models";
 
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
+
 const Home: NextPage = () => {
   const [task, setTask] = useState<string>("");
   const [tasks, setTasks] = useState<Array<TaskProps>>([]);
 
+  useEffect(() => {
+    axios.get(API_URL).then((res) => {
+      const data = res.data;
+      setTasks(Object.values(data));
+    });
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const data = {
+      id: Date.now(),
+      task: task,
+      status: "In Progress",
+    };
+
     if (task) {
-      setTasks([...tasks, { id: Date.now(), task, status: false }]);
-      setTask("");
+      axios.post(API_URL, data).then((res) => {
+        setTasks([...tasks, data]);
+        setTask("");
+        alert("Task added");
+      });
     }
   };
 
