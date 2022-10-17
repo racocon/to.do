@@ -5,41 +5,27 @@ import type { NextPage } from "next";
 import styles from "../styles/Home.module.css";
 import Head from "next/head";
 import Header from "../components/Header";
-import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 
-import { TaskProps } from "../src/models/models";
+import { SubtaskProps, TaskProps } from "../src/models/models";
+import TaskInput from "../components/TaskInput";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 const Home: NextPage = () => {
   const [task, setTask] = useState<string>("");
+  const [subtask, setSubtask] = useState<string>("");
   const [tasks, setTasks] = useState<Array<TaskProps>>([]);
+  const [subtasks, setSubtasks] = useState<Array<SubtaskProps>>([]);
 
   useEffect(() => {
     axios.get(API_URL).then((res) => {
       const data = res.data;
-      setTasks(Object.values(data));
+      data !== null && setTasks(Object.values(data));
+
+      console.log(data);
     });
   }, []);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const data = {
-      id: Date.now(),
-      task: task,
-      status: "In Progress",
-    };
-
-    if (task) {
-      axios.post(API_URL, data).then((res) => {
-        setTasks([...tasks, data]);
-        setTask("");
-        alert("Task added");
-      });
-    }
-  };
 
   return (
     <div>
@@ -54,10 +40,10 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <p className="text-5xl font-medium pb-10">Task List</p>
         <div className="">
-          <TaskForm task={task} setTask={setTask} handleSubmit={handleSubmit} />
+          <TaskInput listType={0} tasks={tasks} setTasks={setTasks} />
         </div>
         <div className="">
-          <TaskList tasks={tasks} setTasks={setTasks} />
+          <TaskList tasks={tasks} subtasks={subtasks} setTasks={setTasks} />
         </div>
       </main>
 

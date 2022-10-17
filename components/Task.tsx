@@ -1,13 +1,18 @@
 import { useState } from "react";
 
-import { TaskProps } from "../src/models/models";
+import { SubtaskProps, TaskProps } from "../src/models/models";
+import Subtask from "./Subtask";
+import TaskInput from "./TaskInput";
 
-const Task: React.FC<{
+interface props {
   index: number;
   task: TaskProps;
   tasks: Array<TaskProps>;
+  subtask?: SubtaskProps;
   setTasks: React.Dispatch<React.SetStateAction<Array<TaskProps>>>;
-}> = ({ task, tasks, setTasks }) => {
+}
+
+export default function Task({ index, task, tasks, setTasks }: props) {
   const [dropdown, setDropdown] = useState<Boolean>(false);
   const [style, setStyle] = useState<string>("hidden");
   const [input, setInput] = useState<Boolean>(false);
@@ -18,15 +23,23 @@ const Task: React.FC<{
         task.id === id
           ? {
               ...task,
-              status: task.status == "In Progress" ? "Done" : "In Progress",
+              status: (task.status = !task.status),
             }
           : task
       )
     );
   };
 
+  const completed_subtasks = task.subtasks?.filter((x) => x.status).length;
+
+  const total_subtasks = task.subtasks?.length;
+
+  const check_subtask = total_subtasks > 0;
+
+  const percentage = Math.round((completed_subtasks / total_subtasks) * 100);
+
   return (
-    <tr key={task.id}>
+    <tr key={task.id} className="">
       {/* ID */}
       <td className="w-1/5 py-4 pl-6 pr-3 font-medium">{task.id}</td>
 
@@ -34,42 +47,55 @@ const Task: React.FC<{
       <td className="w-1/2 px-3 py-4 text-sm">
         <div className="flex flex-row">
           {/* DROPDOWN TO DISPLAY SUBTASKS */}
+          {check_subtask && (
+            <button onClick={() => setDropdown(!dropdown)}>
+              {dropdown ? (
+                // Opened
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  className="mr-2"
+                  viewBox="0 0 16 16"
+                >
+                  <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
+                </svg>
+              ) : (
+                // Closed
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  className="mr-2"
+                  viewBox="0 0 16 16"
+                >
+                  <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+                </svg>
+              )}
+            </button>
+          )}
 
-          <button onClick={() => setDropdown(!dropdown)}>
-            {dropdown ? (
-              // Opened
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                className="mr-2"
-                viewBox="0 0 16 16"
-              >
-                <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
-              </svg>
-            ) : (
-              // Closed
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                className="mr-2"
-                viewBox="0 0 16 16"
-              >
-                <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
-              </svg>
-            )}
-          </button>
           <div className="w-full">
             {/* TASK */}
-            <div>{task.task}</div>
+            <div className="mb-2">{task.task}</div>
 
             {/* PROGRESS BAR */}
-            <div className="mt-2 w-1/2 rounded-full bg-light-gray dark:bg-light-gray/20">
-              <div className="bg-success dark:bg-success-dark w-1/4 text-xs font-medium p-0.5 rounded-full"></div>
-            </div>
+            {check_subtask && (
+              <>
+                <div className="mt-2 w-1/2 rounded-full bg-light-gray dark:bg-light-gray/20">
+                  <div
+                    className={`bg-success dark:bg-success-dark text-xs font-medium p-0.5 rounded-full`}
+                    style={{ width: `${percentage}%` }}
+                  ></div>
+                </div>
+
+                <p className="pt-2">
+                  {completed_subtasks}/{total_subtasks} subtasks completed
+                </p>
+              </>
+            )}
           </div>
 
           {/* ADD NEW SUBTASK BUTTON */}
@@ -99,43 +125,58 @@ const Task: React.FC<{
           </div>
         </div>
 
-        {/* SUBTASK INPUT */}
-        {input && (
-          <div className="flex flex-row justify-between w-full">
-            <form
-              className="w-full"
-              // onSubmit={(e) => {
-              //   handleSubmit(e);
-              // }}
-            >
-              <input
-                autoFocus
-                className="w-1/2 rounded-md ml-6 mt-2 px-2 opacity-80 focus"
-                type="text"
-                placeholder="+ Add subtask"
-              />
-            </form>
-            <button onClick={() => (setInput(false), setDropdown(false))}>
-              Cancel
-            </button>
+        {/* SUBTASK ACCORDION */}
+        {dropdown && (
+          <div className={`${check_subtask ? "pl-6" : "pl-0"}`}>
+            {/* SUBTASKS LIST */}
+            {check_subtask && (
+              <div className="my-1">
+                {task.subtasks.map((item, index) => {
+                  return <Subtask key={index} subtask={item} />;
+                })}
+              </div>
+            )}
+
+            {/* SUBTASK INPUT */}
+            {input && (
+              <div className="flex flex-row justify-between w-full">
+                <TaskInput
+                  listType={1}
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  taskIndex={index}
+                  onBlur={() => setInput(false)}
+                />
+              </div>
+            )}
           </div>
         )}
       </td>
 
       {/* STATUS */}
       <td className="px-3 py-4 text-sm">
-        <button
-          onClick={() => handleDone(task.id)}
-          className={`inline-flex rounded-full px-4 text-sm font-semibold leading-5 ${
-            task.status == "Done"
-              ? "bg-success/20 text-success dark:bg-success-dark/20 dark:text-success-dark"
-              : task.status == "In Progress"
-              ? "bg-alert/20 text-alert dark:bg-alert-dark/20 dark:text-alert-dark"
-              : "bg-accent/20 text-accent dark:bg-accent-dark/20 dark:text-accent-dark"
-          }`}
-        >
-          {task.status}
-        </button>
+        {/* TODO: update task.status in database when toggled */}
+        {(
+          check_subtask
+            ? task.status &&
+              task.subtasks.every((element) => element.status === true)
+            : task.status
+        ) ? (
+          <div className="inline-flex rounded-full px-4 text-sm font-semibold leading-5 bg-accent/20 text-accent dark:bg-accent-dark/20 dark:text-accent-dark">
+            Complete
+          </div>
+        ) : (
+          <button
+            onClick={() => handleDone(task.id)}
+            className={`inline-flex rounded-full px-4 text-sm font-semibold leading-5 ${
+              task.status
+                ? "bg-success/20 text-success dark:bg-success-dark/20 dark:text-success-dark"
+                : "bg-alert/20 text-alert dark:bg-alert-dark/20 dark:text-alert-dark"
+            }`}
+          >
+            {task.status ? "Done" : "In Progress"}
+          </button>
+        )}
       </td>
 
       {/* EDIT */}
@@ -146,6 +187,4 @@ const Task: React.FC<{
       </td>
     </tr>
   );
-};
-
-export default Task;
+}

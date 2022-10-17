@@ -1,12 +1,13 @@
-import { TaskProps } from "../src/models/models";
+import { SubtaskProps, TaskProps } from "../src/models/models";
 import Task from "./Task";
 
 interface props {
   tasks: Array<TaskProps>;
+  subtasks: Array<SubtaskProps>;
   setTasks: React.Dispatch<React.SetStateAction<Array<TaskProps>>>;
 }
 
-const TaskList: React.FC<props> = ({ tasks, setTasks }) => {
+export default function TaskList({ tasks, subtasks, setTasks }: props) {
   return (
     <div className="mt-8 flex flex-col dark:bg-[#242526]">
       <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -39,7 +40,7 @@ const TaskList: React.FC<props> = ({ tasks, setTasks }) => {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-light-gray">
+              <tbody className="divide-y divide-light-gray align-top">
                 {tasks.map((item, index) => (
                   <Task
                     key={item.id}
@@ -56,6 +57,4 @@ const TaskList: React.FC<props> = ({ tasks, setTasks }) => {
       </div>
     </div>
   );
-};
-
-export default TaskList;
+}
