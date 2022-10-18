@@ -5,6 +5,7 @@ import { SubtaskProps, TaskProps } from "../src/models/models";
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 interface props {
+  keyID: Array<string>;
   listType: number;
   taskIndex?: number;
   tasks: Array<TaskProps>;
@@ -13,6 +14,7 @@ interface props {
 }
 
 export default function TaskInput({
+  keyID,
   listType,
   tasks,
   taskIndex,
@@ -21,15 +23,10 @@ export default function TaskInput({
 }: props) {
   const [inputText, setInputText] = useState("");
 
-  // TODO: Fix subtask issue - append subtask to task based on task.id (use PATCH??)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const dataSubtask = {
-      id: Date.now(),
-      subtask: inputText,
-      status: false,
-    };
+    const dataSubtask = { id: Date.now(), subtask: inputText, status: false };
 
     const dataTask = {
       id: Date.now(),
@@ -40,14 +37,43 @@ export default function TaskInput({
 
     if (inputText) {
       // Add subtask
-      if (listType === 1 && typeof taskIndex !== "undefined") {
-        axios.post(API_URL, dataSubtask).then((res) => {
-          const taskListCopy = [...tasks];
-          taskListCopy[taskIndex].subtasks.push(dataSubtask);
-          setTasks(taskListCopy);
-        });
+      if (
+        // If subtasks exist
+        listType === 1 &&
+        typeof taskIndex !== "undefined" &&
+        [...tasks][taskIndex].subtasks != undefined
+      ) {
+        const subtaskListCopy = [...tasks][taskIndex].subtasks;
+
+        const subtaskList = {
+          subtasks: [...subtaskListCopy, dataSubtask],
+        };
+
+        axios
+          .patch(`${API_URL}/${keyID[taskIndex]}.json`, subtaskList)
+          .then((res) => {
+            const taskListCopy = [...tasks];
+            // taskListCopy[taskIndex].subtasks.push(subtaskList);
+            // setTasks(subtaskList);
+          });
+      } else if (
+        listType === 1 &&
+        typeof taskIndex !== "undefined" &&
+        [...tasks][taskIndex].subtasks == undefined
+      ) {
+        const subtaskList = {
+          subtasks: [dataSubtask],
+        };
+
+        axios
+          .patch(`${API_URL}/${keyID[taskIndex]}.json`, subtaskList)
+          .then((res) => {
+            const taskListCopy = [...tasks];
+            // taskListCopy[taskIndex].subtasks.push(subtaskList);
+            // setTasks(taskListCopy);
+          });
       } else {
-        axios.post(API_URL, dataTask).then((res) => {
+        axios.post(`${API_URL}.json`, dataTask).then((res) => {
           setTasks([...tasks, dataTask]);
         });
       }

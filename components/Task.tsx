@@ -1,20 +1,24 @@
+import axios from "axios";
 import { useState } from "react";
 
 import { SubtaskProps, TaskProps } from "../src/models/models";
 import Subtask from "./Subtask";
 import TaskInput from "./TaskInput";
 
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
+
 interface props {
-  index: number;
+  keyID: Array<string>;
+  taskIndex: number;
   task: TaskProps;
   tasks: Array<TaskProps>;
-  subtask?: SubtaskProps;
   setSubtasks: React.Dispatch<React.SetStateAction<Array<SubtaskProps>>>;
   setTasks: React.Dispatch<React.SetStateAction<Array<TaskProps>>>;
 }
 
 export default function Task({
-  index,
+  keyID,
+  taskIndex,
   task,
   tasks,
   setTasks,
@@ -32,7 +36,15 @@ export default function Task({
     statusCopy = task.status;
     task.status = !statusCopy;
 
-    setTasks(tasksCopy);
+    const dataStatus = {
+      status: task.status,
+    };
+
+    axios
+      .patch(`${API_URL}/${keyID[taskIndex]}.json`, dataStatus)
+      .then((res) => {
+        setTasks(tasksCopy);
+      });
   };
 
   const completed_subtasks = task.subtasks?.filter((x) => x.status).length;
@@ -149,6 +161,8 @@ export default function Task({
                   return (
                     <Subtask
                       key={index}
+                      index={index}
+                      keyID={keyID[taskIndex]}
                       subtasks={task.subtasks}
                       subtask={item}
                       setSubtasks={setSubtasks}
@@ -162,10 +176,11 @@ export default function Task({
             {input && (
               <div className="flex flex-row justify-between w-full">
                 <TaskInput
+                  keyID={keyID}
                   listType={1}
                   tasks={tasks}
                   setTasks={setTasks}
-                  taskIndex={index}
+                  taskIndex={taskIndex}
                   onBlur={() => setInput(false)}
                 />
               </div>
@@ -176,7 +191,6 @@ export default function Task({
 
       {/* STATUS */}
       <td className="px-3 py-4 text-sm">
-        {/* TODO: update task.status in database when toggled */}
         {(
           check_subtask
             ? task.status &&

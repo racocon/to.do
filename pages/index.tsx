@@ -15,13 +15,13 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 const Home: NextPage = () => {
   const [tasks, setTasks] = useState<Array<TaskProps>>([]);
   const [subtasks, setSubtasks] = useState<Array<SubtaskProps>>([]);
+  const [keyID, setKeyID] = useState<Array<string>>([]);
 
   useEffect(() => {
-    axios.get(API_URL).then((res) => {
+    axios.get(`${API_URL}.json`).then((res) => {
       const data = res.data;
-      data !== null && setTasks(Object.values(data));
-
-      console.log(data);
+      data !== null &&
+        (setTasks(Object.values(data)), setKeyID(Object.keys(data)));
     });
   }, []);
 
@@ -36,11 +36,17 @@ const Home: NextPage = () => {
       <main className="min-h-screen m-8 md:max-w-[80vw] md:px-0 px-4 mx-auto">
         <p className="text-5xl font-medium pb-10">Task List</p>
         <div className="">
-          <TaskInput listType={0} tasks={tasks} setTasks={setTasks} />
+          <TaskInput
+            listType={0}
+            keyID={keyID}
+            tasks={tasks}
+            setTasks={setTasks}
+          />
         </div>
         <div className="">
           <TaskList
             tasks={tasks}
+            keyID={keyID}
             subtasks={subtasks}
             setTasks={setTasks}
             setSubtasks={setSubtasks}
