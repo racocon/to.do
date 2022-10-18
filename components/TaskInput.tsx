@@ -63,7 +63,7 @@ export default function TaskInput({
       className="w-full"
     >
       <input
-        className="w-1/2 border rounded-md px-4 py-1 mr-5"
+        className="md:w-1/2 w-full border rounded-md px-4 py-1 mr-5"
         autoFocus
         onBlur={onBlur}
         onChange={(e) => {

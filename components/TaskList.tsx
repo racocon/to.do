@@ -5,12 +5,13 @@ interface props {
   tasks: Array<TaskProps>;
   subtasks: Array<SubtaskProps>;
   setTasks: React.Dispatch<React.SetStateAction<Array<TaskProps>>>;
+  setSubtasks: React.Dispatch<React.SetStateAction<Array<SubtaskProps>>>;
 }
 
-export default function TaskList({ tasks, subtasks, setTasks }: props) {
+export default function TaskList({ tasks, setSubtasks, setTasks }: props) {
   return (
     <div className="mt-8 flex flex-col dark:bg-[#242526]">
-      <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div className="-my-2 md:-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
           <div className="overflow-hidden shadow md:rounded-lg">
             <table className="min-w-full divide-y">
@@ -18,7 +19,7 @@ export default function TaskList({ tasks, subtasks, setTasks }: props) {
                 <tr>
                   <th
                     scope="col"
-                    className="py-3.5 pl-6 pr-3 text-left font-semibold"
+                    className="hidden lg:table-cell py-3.5 pl-6 pr-3 text-left font-semibold"
                   >
                     ID
                   </th>
@@ -48,6 +49,7 @@ export default function TaskList({ tasks, subtasks, setTasks }: props) {
                     task={item}
                     tasks={tasks}
                     setTasks={setTasks}
+                    setSubtasks={setSubtasks}
                   />
                 ))}
               </tbody>
