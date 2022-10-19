@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
-import { SubtaskProps, TaskProps } from "../src/models/models";
+import { TaskProps } from "../src/models/models";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
@@ -23,7 +23,7 @@ export default function TaskInput({
 }: props) {
   const [inputText, setInputText] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const dataSubtask = { id: Date.now(), subtask: inputText, status: false };
@@ -37,40 +37,21 @@ export default function TaskInput({
 
     if (inputText) {
       // Add subtask
-      if (
-        // If subtasks exist
-        listType === 1 &&
-        typeof taskIndex !== "undefined" &&
-        [...tasks][taskIndex].subtasks != undefined
-      ) {
-        const subtaskListCopy = [...tasks][taskIndex].subtasks;
+      if (listType === 1 && typeof taskIndex !== "undefined") {
+        const taskListCopy = [...tasks];
 
-        const subtaskList = {
-          subtasks: [...subtaskListCopy, dataSubtask],
-        };
+        const subtaskList =
+          taskListCopy[taskIndex].subtasks != undefined
+            ? { subtasks: [...taskListCopy[taskIndex].subtasks, dataSubtask] }
+            : { subtasks: [dataSubtask] };
 
         axios
           .patch(`${API_URL}/${keyID[taskIndex]}.json`, subtaskList)
           .then((res) => {
-            const taskListCopy = [...tasks];
-            // taskListCopy[taskIndex].subtasks.push(subtaskList);
-            // setTasks(subtaskList);
-          });
-      } else if (
-        listType === 1 &&
-        typeof taskIndex !== "undefined" &&
-        [...tasks][taskIndex].subtasks == undefined
-      ) {
-        const subtaskList = {
-          subtasks: [dataSubtask],
-        };
-
-        axios
-          .patch(`${API_URL}/${keyID[taskIndex]}.json`, subtaskList)
-          .then((res) => {
-            const taskListCopy = [...tasks];
-            // taskListCopy[taskIndex].subtasks.push(subtaskList);
-            // setTasks(taskListCopy);
+            taskListCopy[taskIndex].subtasks != undefined
+              ? (taskListCopy[taskIndex].subtasks.push(dataSubtask),
+                setTasks(taskListCopy))
+              : window.location.reload();
           });
       } else {
         axios.post(`${API_URL}.json`, dataTask).then((res) => {
